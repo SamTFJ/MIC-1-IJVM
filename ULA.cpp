@@ -8,13 +8,16 @@ void ULA:: lerarquivo(string nomearquivo){
     ifstream arquivo(nomearquivo); // abre o arquivo para leitura
 
     if (!arquivo.is_open()) {
-        std::cerr << "Erro ao abrir o arquivo!" << std::endl;
+        cout <<"Erro ao abrir o arquivo!" << endl;
     }
 
     string linha;
-    while (std::getline(arquivo, linha)) {
-        IR = linha;
-        PC = PC +1;
+    while (getline(arquivo, linha)) {
+        for (int i = 0; i++; i < linha.length()) {  
+            IR[i] = linha.substr(i, 1);
+        }
+
+        PC++;
     }
 
     
