@@ -8,7 +8,7 @@ class ULA {
     public:
         bool F0, F1, ENA, ENB, INVA, INC;
         bool A, B;
-        string IR;
+        string IR[6];
         int PC;
         int S;
 
