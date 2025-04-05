@@ -36,7 +36,7 @@ int ULA::processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC, bo
     return result;
 }
 
-void ULA:: executar(string nomearquivo){
+void ULA::executar(string nomearquivo){
     ifstream arquivo(nomearquivo); // abre o arquivo para leitura
 
     ofstream arqlog("log.txt"); // Abre o arquivo de log
@@ -50,17 +50,17 @@ void ULA:: executar(string nomearquivo){
 
     string linha;
     while (getline(arquivo, linha)) { // Lê cada linha do arquivo e separa em caracteres
-        for (int i = 0; i++; i < linha.length()) {  
+        for (int i = 0; i < 6 && i < linha.length(); i++) {
             IR[i] = linha.substr(i, 1);
         }
 
         // Associa cada caracter a uma entrada
-        F0 = linha[0];
-        F1 = linha[1];
-        ENA = linha[2];
-        ENB = linha[3];
-        INVA = linha[4];
-        INC = linha[5];
+        F0 = (linha[0] == '1');
+        F1 = (linha[1] == '1');
+        ENA = (linha[2] == '1');
+        ENB = (linha[3] == '1');
+        INVA = (linha[4] == '1');
+        INC = (linha[5] == '1');
 
         S = processar(F0, F1, ENA, ENB, INVA, INC, A, B);
 
