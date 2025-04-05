@@ -75,9 +75,6 @@ void ULA::executar(string nomearquivo){
         // Acrescenta +1 no PC, sinalizando que a operação foi concluida e vai para a próxima instrução
         PC++;
     }
-
-    
-
     
     arqlog.close();  // fecha o arquivo log
     arquivo.close(); // fecha o arquivo
