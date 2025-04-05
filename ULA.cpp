@@ -4,9 +4,24 @@
 #include <string>
 using namespace std;
 
-int ULA::processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC, bool A, bool B) {
+void ULA::seta(string a){
+    for (int i = 0; i < 32 && i < a.size(); i++) {
+        A[i] = a[i];
+    }
+}
+
+void ULA::setb(string b){
+    for (int i = 0; i < 32 && i < b.size(); i++) {
+        B[i] = b[i];
+    }
+}
+
+
+int ULA::processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC, char A, char B) {
     // Define os valores de entrada
-    int a = (ENA ? (INVA ? !A : A) : 0); // verifica se ENA esta habilitada, caso sim, verifica se o INVA esta habilitado
+    int
+    
+     a = (ENA ? (INVA ? !A : A) : 0); // verifica se ENA esta habilitada, caso sim, verifica se o INVA esta habilitado
     int b = (ENB ? B : 0); // verifica se ENB esta habilitada
     
     int result = 0;
@@ -70,7 +85,7 @@ void ULA::executar(string nomearquivo){
         << " | A: " << A 
         << " | B: " << B 
         << " | S: " << S 
-        << " | Carryout: " << carryout << "\n";
+        << " | CO: " << carryout << "\n";
         
         // Acrescenta +1 no PC, sinalizando que a operação foi concluida e vai para a próxima instrução
         PC++;
