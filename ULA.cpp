@@ -4,6 +4,10 @@
 #include <string>
 using namespace std;
 
+ULA::ULA(){
+    PC = 0;
+}
+
 void ULA::seta(string a){
     for (int i = 0; i < 32 && i < a.size(); i++) {
         A[i] = a[i];
@@ -17,7 +21,7 @@ void ULA::setb(string b){
 }
 
 
-int ULA::processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC, char A, char B) {
+int ULA::processar() {
     // Define os valores de entrada
     int
     
@@ -66,18 +70,18 @@ void ULA::executar(string nomearquivo){
     string linha;
     while (getline(arquivo, linha)) { // Lê cada linha do arquivo e separa em caracteres
         for (int i = 0; i < 6 && i < linha.length(); i++) {
-            IR[i] = linha.substr(i, 1);
+            IR[i] = linha[i];
         }
 
         // Associa cada caracter a uma entrada
-        F0 = (linha[0] == '1');
-        F1 = (linha[1] == '1');
-        ENA = (linha[2] == '1');
-        ENB = (linha[3] == '1');
-        INVA = (linha[4] == '1');
-        INC = (linha[5] == '1');
+        F0 = (IR[0] == '1');
+        F1 = (IR[1] == '1');
+        ENA = (IR[2] == '1');
+        ENB = (IR[3] == '1');
+        INVA = (IR[4] == '1');
+        INC = (IR[5] == '1');
 
-        S = processar(F0, F1, ENA, ENB, INVA, INC, A, B);
+        S = processar();
 
         //escreve no arquivo log
         arqlog << "PC: " << PC 
