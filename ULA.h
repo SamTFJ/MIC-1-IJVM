@@ -20,6 +20,7 @@ class ULA {
     ULA(){
         A = 1;
         B = 1;
+        PC = 0;
     }
 };
 

@@ -4,7 +4,37 @@
 #include <string>
 using namespace std;
 
-
+int ULA::processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC, bool A, bool B) {
+    // Define os valores de entrada
+    int a = (ENA ? (INVA ? !A : A) : 0); // verifica se ENA esta habilitada, caso sim, verifica se o INVA esta habilitado
+    int b = (ENB ? B : 0); // verifica se ENB esta habilitada
+    
+    int result = 0;
+    int op = (F0 ? 1 : 0) * 2 + (F1 ? 1 : 0);  // transforma os bits em inteiro pra usar no switch case
+    
+    switch(op) {
+        case 0:  // 00: AND, F0 = 0 e F1 = 0, então op = 0*2 + 0 = 0 (case0)
+            result = (a & b);
+            break;
+        case 1:  // 01: subtração, F0 = 0 e F1 = 1, então op = 0*2 + 1 = 1 (case1)
+        {
+            result = a-b;
+            break;
+        }
+        case 2:  // 10: OR, F0 = 1 e F1 = 0, então op = 1*2 + 0 = 2 (case2)
+            result = (a | b);
+            break;
+        case 3:  // 11: soma, F0 = 1 e F2 = 1, então op = 1*2 + 1 = 3 (case3)
+        {
+            int sum = a + b + (INC ? 1 : 0); //soma e verifica se ocorre INC
+            carryout = (sum >= 2) ? 1 : 0; 
+            result = sum % 2;
+            break;
+        }
+    }
+    
+    return result;
+}
 
 void ULA:: executar(string nomearquivo){
     ifstream arquivo(nomearquivo); // abre o arquivo para leitura
@@ -32,7 +62,15 @@ void ULA:: executar(string nomearquivo){
         INVA = linha[4];
         INC = linha[5];
 
-       
+        S = processar(F0, F1, ENA, ENB, INVA, INC, A, B);
+
+        //escreve no arquivo log
+        arqlog << "PC: " << PC 
+        << " | IR: " << linha 
+        << " | A: " << A 
+        << " | B: " << B 
+        << " | S: " << S 
+        << " | Carryout: " << carryout << "\n";
         
         // Acrescenta +1 no PC, sinalizando que a operação foi concluida e vai para a próxima instrução
         PC++;
@@ -41,6 +79,6 @@ void ULA:: executar(string nomearquivo){
     
 
     
-
+    arqlog.close();  // fecha o arquivo log
     arquivo.close(); // fecha o arquivo
 }
