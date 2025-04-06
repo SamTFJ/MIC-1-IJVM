@@ -2,99 +2,145 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring> // usar strcpy, strncpy (manipular char)
+#include <bitset> // converte entre string binaria e inteiro
 using namespace std;
 
-ULA::ULA(){
-    PC = 0;
+//iniciando 
+ULA::ULA() {
+    strcpy(A, "11111111111111111111111111111111");
+    strcpy(B, "00000000000000000000000000000001");
+    strcpy(S, "00000000000000000000000000000000");
+    strcpy(IR, "000000");
+    PC = 1;
+    carryout = 0;
 }
 
+// copia ate 32 caracteres de a.c_str() para A[]
 void ULA::seta(string a){
-    for (int i = 0; i < 32 && i < a.size(); i++) {
-        A[i] = a[i];
-    }
+    strncpy(A, a.c_str(), 32); //a.c_str() retorna um ponteiro de char, para o strncpy poder copiar
+    A[32] = '\0';  //garante o '\0'
 }
 
+// mesma coisa para B[]
 void ULA::setb(string b){
-    for (int i = 0; i < 32 && i < b.size(); i++) {
-        B[i] = b[i];
-    }
+    strncpy(B, b.c_str(), 32);
+    B[32] = '\0';  
 }
 
+int ULA::processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC) {
+    //conjunto de 32 bits, recebe um const char*, cada caractere de A e B é interpretado como bit
+    bitset<32> bsA(A); // bsA contem o padrão binario de A, logo bsa tem um array de 32 bits. A[0] (mais signficativo) A[31] (menos significativo)
+    bitset<32> bsB(B); 
 
-int ULA::processar() {
-    // Define os valores de entrada
-    int
+    // analisa se ENA e ENB estão habilitados
+    unsigned int opA = ENA ? bsA.to_ulong() : 0; //Caso ENA esteja habilitado, pega os 32 bits e os interpreta como um inteiro, caso não esteja habilitado, será 0.
+    unsigned int opB = ENB ? bsB.to_ulong() : 0;
     
-     a = (ENA ? (INVA ? !A : A) : 0); // verifica se ENA esta habilitada, caso sim, verifica se o INVA esta habilitado
-    int b = (ENB ? B : 0); // verifica se ENB esta habilitada
+    // Se INVA estiver ativo, inverte os bits de opA
+    if (INVA) opA = (~opA) & 0xFFFFFFFF;
     
-    int result = 0;
-    int op = (F0 ? 1 : 0) * 2 + (F1 ? 1 : 0);  // transforma os bits em inteiro pra usar no switch case
     
-    switch(op) {
-        case 0:  // 00: AND, F0 = 0 e F1 = 0, então op = 0*2 + 0 = 0 (case0)
-            result = (a & b);
+    // Converte F0 e F1 para um inteiro entre 0 e 3
+    int op = (F0 ? 1 : 0) * 2 + (F1 ? 1 : 0);
+
+    unsigned long long result = 0;
+
+        //as 4 operações básicas da ULA
+        
+        switch(op) {
+        case 0:  // 00: AND
+            result = opA & opB;
             break;
-        case 1:  // 01: subtração, F0 = 0 e F1 = 1, então op = 0*2 + 1 = 1 (case1)
-        {
-            result = a-b;
+        case 1:  // 01: OR
+            result = opA | opB;
             break;
-        }
-        case 2:  // 10: OR, F0 = 1 e F1 = 0, então op = 1*2 + 0 = 2 (case2)
-            result = (a | b);
+        case 2:  // 10: originalmente subtração, agora ADD (soma simples)
+            result = (unsigned long long)opA + opB;
             break;
-        case 3:  // 11: soma, F0 = 1 e F2 = 1, então op = 1*2 + 1 = 3 (case3)
-        {
-            int sum = a + b + (INC ? 1 : 0); //soma e verifica se ocorre INC
-            carryout = (sum >= 2) ? 1 : 0; 
-            result = sum % 2;
+        case 3:  // 11: originalmente ADD (+ INC), agora soma com incremento (soma + (INC ? 1 : 0))
+            result = (unsigned long long)opA + opB + (INC ? 1 : 0);
             break;
-        }
     }
+          
     
-    return result;
+    // Detecta carryout se o resultado exceder 32 bits
+    carryout = (result > 0xFFFFFFFFu) ? 1 : 0;
+    
+    // result pode conter ate 64 bits, essa função considera apenas os 32 bits menos significativos
+    unsigned int res32 = (unsigned int)(result & 0xFFFFFFFFu);
+    
+    // Converte o resultado para string binária e armazena em S
+    string binRes = bitset<32>(res32).to_string();
+    strncpy(S, binRes.c_str(), 32);
+    S[32] = '\0';
+    
+    return res32;
 }
 
 void ULA::executar(string nomearquivo){
-    ifstream arquivo(nomearquivo); // abre o arquivo para leitura
+    ifstream arquivo(nomearquivo);
+    ofstream arqlog("log.txt");
 
-    ofstream arqlog("log.txt"); // Abre o arquivo de log
-        if (!arqlog.is_open()) {
-            std::cerr << "Não foi possível criar o arquivo!" << std::endl;
-        }
-
-    if (!arquivo.is_open()) { // Verifica se o arquivo foi aberto corretamente
-        cout <<"Erro ao abrir o arquivo!" << endl;
-    }
-
-    string linha;
-    while (getline(arquivo, linha)) { // Lê cada linha do arquivo e separa em caracteres
-        for (int i = 0; i < 6 && i < linha.length(); i++) {
-            IR[i] = linha[i];
-        }
-
-        // Associa cada caracter a uma entrada
-        F0 = (IR[0] == '1');
-        F1 = (IR[1] == '1');
-        ENA = (IR[2] == '1');
-        ENB = (IR[3] == '1');
-        INVA = (IR[4] == '1');
-        INC = (IR[5] == '1');
-
-        S = processar();
-
-        //escreve no arquivo log
-        arqlog << "PC: " << PC 
-        << " | IR: " << linha 
-        << " | A: " << A 
-        << " | B: " << B 
-        << " | S: " << S 
-        << " | CO: " << carryout << "\n";
-        
-        // Acrescenta +1 no PC, sinalizando que a operação foi concluida e vai para a próxima instrução
-        PC++;
+    //erro ao abrir
+    if (!arquivo.is_open()) {
+        cerr << "Erro ao abrir o arquivo de instruções!" << endl;
+        return;
     }
     
-    arqlog.close();  // fecha o arquivo log
-    arquivo.close(); // fecha o arquivo
+    // Cabeçalho do log 
+    arqlog << "b = " << B << "\n";
+    arqlog << "a = " << A << "\n\n";
+    arqlog << "Programa Iniciado\n";
+    arqlog << "============================================================\n";
+
+   
+    string linha;
+
+    while (getline(arquivo, linha)) {
+
+        //se a linha tiver vazia, irá encerrar
+        if (linha.empty()){
+            PC++;
+            arqlog << "\nPC = " << PC << "\n> Line is empty, EOP.\n";
+            break;
+        }
+
+        // 1) Carrega IR (6 bits)
+        for (int i = 0; i < 6 && i < (int)linha.length(); ++i){
+            IR[i] = linha[i];
+        }
+        IR[6] = '\0';
+
+        // 2) Decodifica os sinais de controle a partir da linha
+        F0   = (linha[0] == '1');
+        F1   = (linha[1] == '1');
+        ENA  = (linha[2] == '1');
+        ENB  = (linha[3] == '1');
+        INVA = (linha[4] == '1');
+        INC  = (linha[5] == '1');
+
+        // 3) Executa a operação da ULA
+        int res = processar(F0, F1, ENA, ENB, INVA, INC);
+        
+
+
+
+        // 4) Grava no log
+        arqlog << "\nCiclo " << PC << "\n\n";
+        arqlog << "PC = " << PC << "\n";
+        arqlog << "IR = " << IR << "\n";
+        arqlog << "b = " << B << "\n";
+        arqlog << "a = " << A << "\n";
+        arqlog << "s = " << S << "\n";
+        arqlog << "co = " << carryout << "\n";
+        arqlog << "============================================================\n";
+
+
+        PC++; //incrementa pc, indicando q vai para prox instrução
+    }
+    // fecha os arquivos
+    arqlog.close();
+    arquivo.close();
 }
+

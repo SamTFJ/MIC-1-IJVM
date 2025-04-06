@@ -1,9 +1,12 @@
+#include <iostream>
 #include "ULA.h"
 
-int main (){
+using namespace std;
 
-    string nomearq = "tests/programa_etapa1.txt";
+int main() {
     ULA ula;
-    ula.executar(nomearq);
+    ula.executar("tests/programa_etapa1.txt");
+    cout << "Execução concluída. Verifique o arquivo log.txt para os resultados." << endl;
+    
     return 0;
 }

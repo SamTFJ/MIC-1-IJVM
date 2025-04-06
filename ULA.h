@@ -7,22 +7,20 @@ using namespace std;
 class ULA {
     public:
         bool F0, F1, ENA, ENB, INVA, INC;
-        char A[32]; // 32 bits + finalizador da string '/0'
-        char B[32];
-        char IR[6]; // 6 bits + finalizador '/0'
+        char A[33];  // 32 bits + terminador '\0'
+        char B[33];
+        char IR[7];  // 6 bits + terminador '\0'
+        char S[33];  
         int PC;
-        string S;
         int carryout;
 
-        void executar(string arquivo);
+        ULA();
 
-        int processar();
         
+        void executar(string nomearquivo);
+        int processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC);
         void seta(string a);
-
         void setb(string b);
-
-    ULA();
 };
 
 #endif
