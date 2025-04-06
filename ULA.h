@@ -6,22 +6,21 @@ using namespace std;
 
 class ULA {
     public:
-        bool F0, F1, ENA, ENB, INVA, INC, A, B;
-        string IR[6];
+        bool F0, F1, ENA, ENB, INVA, INC;
+        char A[33];  // 32 bits + terminador '\0'
+        char B[33];
+        char IR[7];  // 6 bits + terminador '\0'
+        char S[33];  
         int PC;
-        int S;
         int carryout;
 
-        void executar(string arquivo);
+        ULA();
 
-        int processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC, bool A, bool B);
         
-
-    ULA(){
-        A = 1;
-        B = 1;
-        PC = 0;
-    }
+        void executar(string nomearquivo);
+        int processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC);
+        void seta(string a);
+        void setb(string b);
 };
 
 #endif
