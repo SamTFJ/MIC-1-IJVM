@@ -75,10 +75,33 @@ int ULA::processar(bool SLL8, bool SRA1,bool F0, bool F1, bool ENA, bool ENB, bo
     // result pode conter ate 64 bits, essa função considera apenas os 32 bits menos significativos
     unsigned int res32 = (unsigned int)(result & 0xFFFFFFFFu);
 
+
     // Converte o resultado para string binária e armazena em S
     string binRes = bitset<32>(res32).to_string();
     strncpy(S, binRes.c_str(), 32);
     S[32] = '\0';
+
+
+
+    if(SLL8 & !SRA1){
+
+        res32 = res32 << 8; // deslocamento lógico para esquerda em 8 bits
+
+    } else if(SRA1 & !SLL8){
+       int32_t  resultadosra1 = static_cast<int32_t>(res32); //var res32(unsigned int) é convertida para um inteiro com sinal, a converção é forçada pelo static_cast<int_32t>
+
+        resultadosra1 = resultadosra1 >>1; // deslocamento aritmético para direita em 1 bit
+
+        res32 = static_cast<unsigned int>(resultadosra1); //var res32 é convertida de volta para unsingned int
+    }else if(SLL8 & SRA1){
+        return;
+    }
+
+    string binresd = bitset<32>(res32).to_string();
+    strncpy(Sd, binresd.c_str(),32);
+    Sd[32] = '\0';
+
+   
     
     return res32;
 }
