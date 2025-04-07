@@ -5,7 +5,7 @@
 #include <string>
 #include <cstdint>
 #include <cstring> // para strcpy, strncpy
-#include <bitset>
+#include <bitset> // converte entre string binaria e inteiro
 #include <vector>
 using namespace std;
 
