@@ -5,6 +5,7 @@
 #include <string>
 #include <cstring> // usar strcpy, strncpy (manipular char)
 #include <bitset> // converte entre string binaria e inteiro
+#include <vector>
 using namespace std;
 
 //iniciando registradores
@@ -16,14 +17,28 @@ Registradores::Registradores(){
     strcpy( SP, "00000000000000000000000000000000");
     strcpy( LV, "00000000000000000000000000000000");
     strcpy( CPP, "00000000000000000000000000000000");
-    strcpy( TOS, "00000000000000000000000000000000");
+    strcpy( TOS, "00000000000000000000000000000010");
     strcpy( OPC, "00000000000000000000000000000000");
-    strcpy( H, "00000000000000000000000000000000");
+    strcpy( H, "00000000000000000000000000000001");
     
  } 
 
+ void printInitialRegisters(ofstream &log) {
+    log << "> Initial register states\n";
+    log << "mar = " << "00000000000000000000000000000000" << "\n"; // Sempre 0 na inicialização
+    log << "mdr = " << "00000000000000000000000000000000" << "\n";
+    log << "pc  = " << "00000000000000000000000000000000" << "\n";
+    log << "mbr = " << "10000001" << "\n";
+    log << "sp  = " << "00000000000000000000000000000000" << "\n";
+    log << "lv  = " << "00000000000000000000000000000000" << "\n";
+    log << "cpp = " << "00000000000000000000000000000000" << "\n";
+    log << "tos = " << "00000000000000000000000000000010" << "\n";
+    log << "opc = " << "00000000000000000000000000000000" << "\n";
+    log << "h   = " << "00000000000000000000000000000001" << "\n";
+    log << "============================================================\n\n";
+}
 
-// decodificador de 4 bits para hssbilitar um dos registradores a comandar o barramento B
+// decodificador de 4 bits para habilitar um dos registradores a comandar o barramento B
 string Registradores:: decod4(uint8_t code4) {
     switch (code4){
     case 8:
@@ -56,6 +71,21 @@ string Registradores:: decod4(uint8_t code4) {
 
 }
 
+string getRegisterNameForB(uint8_t code4) {
+    switch(code4) {
+        case 8: return "opc";
+        case 7: return "tos";
+        case 6: return "cpp";
+        case 5: return "lv";
+        case 4: return "sp";
+        case 3: return "mbru";
+        case 2: return "mbr";
+        case 1: return "pc";
+        case 0: return "mdr";
+        default: return "n/a";
+    }
+}
+
 
 void Registradores::escritaC(uint16_t regc, char Sd[33]){
     if (regc & (1<<8)) strcpy(H,   Sd); //se o bit correspondente em regc estiver em 1, copia a string de Sd para o registrador
@@ -69,6 +99,21 @@ void Registradores::escritaC(uint16_t regc, char Sd[33]){
     if (regc & (1<<0)) strcpy(MAR, Sd);
 }
 
+vector<string> registradorhabilitadoC(const string &busC) {
+    vector<string> regsEnabled;
+    if(busC.size() != 9) return regsEnabled;
+    if(busC[0]=='1') regsEnabled.push_back("h");
+    if(busC[1]=='1') regsEnabled.push_back("opc");
+    if(busC[2]=='1') regsEnabled.push_back("tos");
+    if(busC[3]=='1') regsEnabled.push_back("cpp");
+    if(busC[4]=='1') regsEnabled.push_back("lv");
+    if(busC[5]=='1') regsEnabled.push_back("sp");
+    if(busC[6]=='1') regsEnabled.push_back("pc");
+    if(busC[7]=='1') regsEnabled.push_back("mdr");
+    if(busC[8]=='1') regsEnabled.push_back("mar");
+    return regsEnabled;
+}
+
 // objeto global de registradores para poder usar na ULA
 Registradores regs;
 
@@ -80,7 +125,7 @@ ULA::ULA() {
     strcpy(S, "00000000000000000000000000000000");
     strcpy(Sd,"00000000000000000000000000000000");
     strcpy(IR, "00000000");
-    PC = 1;
+    PCU = 1;
     N = 0;
     Z = 0;
     carryout = 0;
@@ -184,6 +229,19 @@ int ULA::processar(bool SLL8, bool SRA1,bool F0, bool F1, bool ENA, bool ENB, bo
     
     return res32;
 }
+// Função para imprimir os estados dos registradores (para o log)
+void printRegisters(ofstream &log) {
+    log << "mar = " << regs.MAR << "\n";
+    log << "mdr = " << regs.MDR << "\n";
+    log << "pc  = " << regs.PC << "\n";
+    log << "mbr = " << regs.MBR << "\n";
+    log << "sp  = " << regs.SP << "\n";
+    log << "lv  = " << regs.LV << "\n";
+    log << "cpp = " << regs.CPP << "\n";
+    log << "tos = " << regs.TOS << "\n";
+    log << "opc = " << regs.OPC << "\n";
+    log << "h   = " << regs.H << "\n";
+}
 
 void ULA::executar(string nomearquivo){
     ifstream arquivo(nomearquivo);
@@ -195,28 +253,24 @@ void ULA::executar(string nomearquivo){
         return;
     }
 
-    arqlog << "============================================================\n\n";
-    arqlog << "Estado Inicial dos Registradores:\n";
-    arqlog << "H   = "   << regs.H   << "\n";
-    arqlog << "OPC = "   << regs.OPC << "\n";
-    arqlog << "TOS = "   << regs.TOS << "\n";
-    arqlog << "CPP = "   << regs.CPP << "\n";
-    arqlog << "LV  = "   << regs.LV  << "\n";
-    arqlog << "SP  = "   << regs.SP  << "\n";
-    arqlog << "PC  = "   << regs.PC  << "\n";
-    arqlog << "MDR = "   << regs.MDR << "\n";
-    arqlog << "MAR = "   << regs.MAR << "\n";
-    arqlog << "MBR = "   << regs.MBR << "\n";
-    arqlog << "============================================================\n\n";
-   
+     // Log do estado inicial dos registradores
+     arqlog << "============================================================\n\n";
+     printInitialRegisters(arqlog);
+
+     arqlog << "============================================================\n";
+     arqlog << "Start of program\n";
+     arqlog << "============================================================\n";
+    
+
+
     string linha;
 
     while (getline(arquivo, linha)) {
 
         //se a linha tiver vazia, irá encerrar
         if (linha.empty()){
-            PC++;
-            arqlog << "\nPC = " << PC << "\n> Line is empty, EOP.\n";
+            PCU++;
+            arqlog << "\nPC = " << PCU << "\n> Line is empty, EOP.\n";
             break;
         }
 
@@ -224,15 +278,39 @@ void ULA::executar(string nomearquivo){
             arqlog << "Instruções incompletas" << endl;
             continue;
         }
+    
 
         // como a instrução completa agr tem 21 bits(8 da ULA, 9 do C, 4 do B.) Agora temos:
         string ULAcontrole = linha.substr(0,8); //pega os 8 primeitos bits
         string barramentoC = linha.substr(8,9); //pega os 9 bits seguintes
         string barramentoB = linha.substr(17,4); //pega os 4 bits finais
 
+
         //atualiza IR da ULA com os 8 primeiros bits de controle
         strncpy(IR, ULAcontrole.c_str(), 8);
         IR[8] = '\0';
+
+        int code4 = stoi(barramentoB, nullptr, 2);//stoi consulta qual registrador sera ativo. nullptr pra nao pegar o resto da string, 2 indica base binaria
+
+         // Log da instrução e estado inicial dos registradores
+         arqlog << "\nCycle " << regs.PC << "\n\n";
+         arqlog << "ir = " << ULAcontrole << " " << barramentoC << " " << barramentoB << "\n";
+         
+         string b_bus_name = getRegisterNameForB(static_cast<uint8_t>(code4));
+         // Obtém os registradores habilitados no barramento C
+         vector<string> c_bus_regs = registradorhabilitadoC(barramentoC);
+         arqlog << "b_bus = " << b_bus_name << "\n";
+         arqlog << "c_bus = ";
+         if(c_bus_regs.empty())
+             arqlog << "Nenhum";
+         else {
+             for (auto &r : c_bus_regs)
+                 arqlog << r << " ";
+         }
+         arqlog << "\n\n> Registers before instruction:\n";
+         printRegisters(arqlog);
+         arqlog << "\n============================================================\n\n";
+
 
         // Decodifica os sinais de controle a partir da linha
         SLL8 = (linha[0] == '1');
@@ -246,9 +324,19 @@ void ULA::executar(string nomearquivo){
        
         seta(string(regs.H)); // configura a entrada A com o conteudo do registrador H
 
-        int code4 = stoi(barramentoB, nullptr,2); //stoi consulta qual registrador sera ativo. nullptr pra nao pegar o resto da string, 2 indica base binaria
+        
         string valorB = regs.decod4(static_cast<uint8_t>(code4));//pega o código de 0 a 8 e retorna o conteudo do registrador correspondente
         setb(valorB); //configura a entrada B com o registrador ativo no momento
+
+         //  verifica se SLL8 = SLLA = 1, quando isso ocorre, o sinal de controle é inválido
+         if(SLL8 & SRA1){
+            arqlog << "\nCiclo " << PCU << "\n\n";
+            arqlog << "PC = " << PCU << "\n";
+            arqlog << "IR = " << IR << "\n";
+            arqlog << ">Erro! Sinais de Controle inválidos."<< endl;  
+            arqlog << "============================================================\n";
+            return;
+        }
 
         // Executa a operação da ULA
         int res = processar(SLL8, SRA1, F0, F1, ENA, ENB, INVA, INC);
@@ -256,31 +344,20 @@ void ULA::executar(string nomearquivo){
         uint16_t regc = stoi(barramentoC, nullptr, 2);
         regs.escritaC(regc, Sd);
 
+         // Log do estado final dos registradores
+         arqlog << "\n> Registers after instruction\n";
+         printRegisters(arqlog);
+         arqlog << "============================================================\n\n";
 
-        //  verifica se SLL8 = SLLA = 1, quando isso ocorre, o sinal de controle é inválido
-        if(SLL8 & SRA1){
-            arqlog << "\nCiclo " << PC << "\n\n";
-            arqlog << "PC = " << PC << "\n";
-            arqlog << "IR = " << IR << "\n";
-            arqlog << ">Erro! Sinais de Controle inválidos."<< endl;  
-            arqlog << "============================================================\n";
-            return;
-        }
+       
 
         // Grava no log
-        arqlog << "\nCiclo " << PC << "\n\n";
-        arqlog << "ir = " << IR << barramentoC << barramentoB <<  "\n";
-        arqlog << "Entrada A (H)         = " << regs.H << "\n";
-        arqlog << "Entrada B             = " << B << "\n";
-        arqlog << "Saída da ULA (S)      = " << S << "\n";
-        arqlog << "Saída Deslocada (Sd)  = " << Sd << "\n";
-        arqlog << "N = " << N << "\n";
-        arqlog << "Z = " << Z << "\n";
-        arqlog << "Carryout = " << carryout << "\n\n";
-        arqlog << "============================================================\n";
+        int cicloInt = stoi(string(regs.PC), nullptr, 2);
+        cicloInt++;
+        string novoPC = bitset<32>(cicloInt).to_string();
+        strcpy(regs.PC, novoPC.c_str());
 
-
-        PC++; //incrementa pc, indicando q vai para prox instrução
+        PCU++; //incrementa pc, indicando q vai para prox instrução
     }
     // fecha os arquivos
     arqlog.close();
