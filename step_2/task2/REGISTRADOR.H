@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 #include <cstring>
-#include <cstdint> // Adicionado para usar uint8_t e uint16_t
 
 using namespace std;
 
