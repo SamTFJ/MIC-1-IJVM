@@ -1,5 +1,6 @@
 #include "ULA.h"
 #include <iostream>
+#include <algorithm> // all_of
 #include <fstream>
 #include <algorithm> // all of
 #include <string>
@@ -179,7 +180,8 @@ void ULA::executar(string nomearquivo){
             arqlog << "IR = " << IR << "\n";
             arqlog << ">Erro! Sinais de Controle inválidos."<< endl;  
             arqlog << "============================================================\n";
-            return;
+            PC++; //incrementa pc, indicando q vai para prox instrução
+            continue;
         }
 
         // 5) Grava no log
@@ -189,7 +191,7 @@ void ULA::executar(string nomearquivo){
         arqlog << "b = " << B << "\n";
         arqlog << "a = " << A << "\n";
         arqlog << "s = " << S << "\n";
-        arqlog << "sd =" << Sd << "\n";
+        arqlog << "sd = " << Sd << "\n";
         arqlog << "n = " << N << "\n";
         arqlog << "z = " << Z << "\n";
         arqlog << "co = " << carryout << "\n";

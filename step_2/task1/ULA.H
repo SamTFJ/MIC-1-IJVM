@@ -11,11 +11,11 @@ class ULA {
         char B[33];
         char IR[9];  // 8 bits + terminador '\0'
         char S[33]; 
-        char Sd[33]; 
-        int PC;
-        int carryout;
-        int N;
-        int Z;
+        char Sd[33]; // resultado da ULA 
+        int PC; // contador de programa
+        int carryout; // carry out da ULA
+        int N; // flag de negativo
+        int Z; // flag de zero
 
         ULA();
 

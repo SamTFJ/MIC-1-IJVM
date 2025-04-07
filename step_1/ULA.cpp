@@ -1,5 +1,6 @@
 #include "ULA.h"
 #include <iostream>
+#include <algorithm> // all_of
 #include <fstream>
 #include <algorithm> // all of
 #include <string>
