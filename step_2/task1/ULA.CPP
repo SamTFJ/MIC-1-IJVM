@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm> // all_of
 #include <fstream>
+#include <algorithm> // all of
 #include <string>
 #include <cstring> // usar strcpy, strncpy (manipular char)
 #include <bitset> // converte entre string binaria e inteiro
