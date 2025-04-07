@@ -21,13 +21,13 @@ void lerMemoria(const string &nomeArquivo) {
         return;
     }
     
-    string linha;
-    while (getline(arquivo, linha)) {
-        if (linha.empty())
+    string linhaa;
+    while (getline(arquivo, linhaa)) {
+        if (linhaa.empty())
             continue; // ignora linhas vazias
         
         // Armazena a linha lida (que deve conter uma palavra de 32 bits) no vetor
-        memoria.push_back(linha);
+        memoria.push_back(linhaa);
     }
     arquivo.close();
 }
@@ -36,8 +36,8 @@ void lerMemoria(const string &nomeArquivo) {
 void escreverMemoria(ofstream &log) {
     log << "> Memoria depois da Instrução\n";
     log << "*******************************\n";
-    for (const auto &linha : memoria) {
-         log << linha << "\n";
+    for (const auto &linhaa : memoria) {
+         log << linhaa << "\n";
     }
     log << "*******************************\n";
 }
@@ -115,7 +115,7 @@ string Registradores::decod4(uint8_t code4) {
         case 8:
             return string(OPC);
         case 7:
-            return string(OPC); // Força para OPC, conforme a saída (mesmo que a convenção seria TOS)
+            return string(TOS); // Força para OPC, conforme a saída (mesmo que a convenção seria TOS)
         case 6:
             return string(CPP);
         case 5:
@@ -161,13 +161,13 @@ void Registradores::lerRegistradores(const string &nomeArquivo) {
         return;
     }
     
-    string linhaa;
-    while (getline(arquivo, linhaa)) {
-        if (linhaa.empty())
+    string linhaaa;
+    while (getline(arquivo, linhaaa)) {
+        if (linhaaa.empty())
             continue;
         
         // Espera-se uma linha no formato: nome = valor
-        istringstream iss(linhaa); //permite tratar uma string como se fosse um stream (como cin).
+        istringstream iss(linhaaa); //permite tratar uma string como se fosse um stream (como cin).
         string nome, igual, valor; // linha = "pc = 00000000000000000000000000001010", entao o iss se comporta como um stream do tipo "pc" "="" "00000000000000000000000000001010"
         if (!(iss >> nome >> igual >> valor))
             continue; // pula linha mal formatada
@@ -326,7 +326,7 @@ void ULA::executar(string nomearquivo) {
         // Se a linha estiver vazia, encerra
         if (linha.empty()){
             arqlog << "\nCiclo " << ciclo << "\n";
-            arqlog << "PC = " << regs.PC << "\n> Line is empty, EOP.\n";
+            arqlog << "\n> Line is empty, EOP.\n";
             break;
         }
         if(linha.size() < 23){
@@ -388,24 +388,26 @@ void ULA::executar(string nomearquivo) {
         regs.escritaC(regc, Sd);
 
         // Verifica a operação de memória
-        if(memoria_bits == "10") { // WRITE
-            int endereco = stoi(regs.MAR, nullptr, 2);
-            if(endereco >= 0 && endereco < (int)memoria.size()) {
-                memoria[endereco] = string(regs.MDR);
+        if(memoria_bits == "10") { // WRITE || Converte o endereço em MAR de binário para inteiro; se o endereço for válido, escreve o conteúdo de MDR na memória na posição indicada
+            int endereco = stoi(regs.MAR, nullptr, 2); //converte o conteudo de MAR pra um inteiro
+            if(endereco >= 0 && endereco < (int)memoria.size()) { //vê se o endereco é valido para o vetor memoria (quantia de linhas da memoria, cada linha tem a plavra de 32 bits)
+                memoria[endereco] = string(regs.MDR); //atualiza a memoria com o valor de MDR, o conteudo de MDR que é uma string, é atribuido na posição endereco do vetor memoria
             } else {
                 cerr << "Endereço inválido para WRITE: " << endereco << endl;
             }
-        } else if(memoria_bits == "01") { // READ
-            int endereco = stoi(regs.MAR, nullptr, 2);
-            if(endereco >= 0 && endereco < (int)memoria.size()) {
-                strcpy(regs.MDR, memoria[endereco].c_str());
+        } else if(memoria_bits == "01") { // READ || Converte o endereço em MAR; se for válido, lê o conteúdo da memória e copia para MDR
+            int endereco = stoi(regs.MAR, nullptr, 2); //converte conteudo de MAR para inteiro
+            if(endereco >= 0 && endereco < (int)memoria.size()) { //analisa seo endereço é valido para o vetor memoria
+                strcpy(regs.MDR, memoria[endereco].c_str()); // converte a string memoria[endereco] em um ponteiro pra char e copia esse conteudo pra o MDR
             } else {
                 cerr << "Endereço inválido para READ: " << endereco << endl;
             }
-        } else if(memoria_bits == "11") { // BIPUSH 
-            string valorH = string(24, '0') + string(regs.MBR);
-            strcpy(regs.H, valorH.c_str());
+        } else if(memoria_bits == "11") { // BIPUSH || Trata o caso especial, onde o conteúdo de MBR (8 bits) é expandido para 32 bits (preenchendo com zeros) e atribuído a H
+            string valorH = string(24, '0') + string(regs.MBR); // converte o conteudo de MBR pra uma string, concatena com uma string com 24 '0', 8bits menos sig = mbr e armazena em valorH
+            strcpy(regs.H, valorH.c_str());//converte a string valorh em um ponteiro para char e armazena no registrador H
         }
+
+        
 
         // Salva estado dos registradores após a instrução
         string estadoDepois;
@@ -423,11 +425,12 @@ void ULA::executar(string nomearquivo) {
 
         // Imprime o log do ciclo
         arqlog << "\nCicle " << ciclo << "\n";
-        arqlog << "ir = " << ULAcontrole << " " << c_bus << " " << b_bus_bits << "\n\n";
+        arqlog << "ir = " << ULAcontrole << " " << c_bus << " " << memoria_bits << " " <<  b_bus_bits << "\n\n";
         arqlog << "b_bus = " << nomeB << "\n";
         arqlog << "c_bus = " << listaC << "\n\n";
         arqlog << estadoAntes;
-        arqlog << "\n" << estadoDepois;
+        arqlog << "\n" << estadoDepois << "\n";
+        escreverMemoria(arqlog);
         arqlog << "=====================================================\n";
 
         ciclo++;
