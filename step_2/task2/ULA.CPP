@@ -356,7 +356,7 @@ void ULA::executar(string nomearquivo) {
         estadoDepois += "h = "   + string(regs.H)   + "\n";
 
         // Imprime o log do ciclo
-        arqlog << "\nCicle " << ciclo << "\n";
+        arqlog << "\nCiclo " << ciclo << "\n";
         arqlog << "ir = " << ULAcontrole << " " << c_bus << " " << b_bus_bits << "\n\n";
         arqlog << "b_bus = " << nomeB << "\n";
         arqlog << "c_bus = " << listaC << "\n\n";
@@ -368,7 +368,7 @@ void ULA::executar(string nomearquivo) {
     }
     // Se não houver mais linhas
     if(arquivo.eof()){
-        arqlog << "Cicle " << ciclo << "\n";
+        arqlog << "Ciclo " << ciclo << "\n";
         arqlog << "No more lines, EOP.\n";
     }
     arqlog.close();
