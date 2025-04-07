@@ -9,8 +9,8 @@ using namespace std;
 
 //iniciando 
 ULA::ULA() {
-    strcpy(A, "00000000000000000000000000000000");
-    strcpy(B, "00000000000000000000000000000000");
+    strcpy(A, "10000000000000000000000000000000");
+    strcpy(B, "00000000000000000000000000000001");
     strcpy(S, "00000000000000000000000000000000");
     strcpy(Sd,"00000000000000000000000000000000");
     strcpy(IR, "00000000");
@@ -179,7 +179,8 @@ void ULA::executar(string nomearquivo){
             arqlog << "IR = " << IR << "\n";
             arqlog << ">Erro! Sinais de Controle inválidos."<< endl;  
             arqlog << "============================================================\n";
-            return;
+            PC++; //incrementa pc, indicando q vai para prox instrução
+            continue;
         }
 
         // 5) Grava no log
@@ -189,7 +190,7 @@ void ULA::executar(string nomearquivo){
         arqlog << "b = " << B << "\n";
         arqlog << "a = " << A << "\n";
         arqlog << "s = " << S << "\n";
-        arqlog << "sd =" << Sd << "\n";
+        arqlog << "sd = " << Sd << "\n";
         arqlog << "n = " << N << "\n";
         arqlog << "z = " << Z << "\n";
         arqlog << "co = " << carryout << "\n";
