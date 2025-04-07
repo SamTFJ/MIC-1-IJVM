@@ -12,7 +12,7 @@ class ULA {
         char IR[9];  // 21 bits + terminador '\0'
         char S[33]; 
         char Sd[33]; 
-        int PCU;
+        int PC;
         int carryout;
         int N;
         int Z;

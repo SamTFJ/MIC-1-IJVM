@@ -1,6 +1,7 @@
 #include "ULA.h"
 #include <iostream>
 #include <fstream>
+#include <algorithm> // all of
 #include <string>
 #include <cstring> // usar strcpy, strncpy (manipular char)
 #include <bitset> // converte entre string binaria e inteiro
@@ -8,8 +9,8 @@ using namespace std;
 
 //iniciando 
 ULA::ULA() {
-    strcpy(A, "00000000000000000000000000000000");
-    strcpy(B, "00000000000000000000000000000000");
+    strcpy(A, "00000000000000000000000000000001");
+    strcpy(B, "10000000000000000000000000000000");
     strcpy(S, "00000000000000000000000000000000");
     strcpy(Sd,"00000000000000000000000000000000");
     strcpy(IR, "00000000");
@@ -17,6 +18,12 @@ ULA::ULA() {
     N = 0;
     Z = 0;
     carryout = 0;
+}
+
+bool ULA::linhaVazia(const string& linha) {
+    return all_of(linha.begin(), linha.end(), [](char c) {
+        return isspace(static_cast<unsigned char>(c));
+    });
 }
 
 // copia ate 32 caracteres de a.c_str() para A[]
@@ -139,9 +146,9 @@ void ULA::executar(string nomearquivo){
     while (getline(arquivo, linha)) {
 
         //se a linha tiver vazia, irá encerrar
-        if (linha.empty()){
+        if (linha.empty() || linhaVazia(linha)) {
             PC++;
-            arqlog << "\nPC = " << PC << "\n> Line is empty, EOP.\n";
+            arqlog << "\nPC = " << PC-1 << "\n> Line is empty, EOP.\n";
             break;
         }
 
