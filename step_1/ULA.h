@@ -16,7 +16,7 @@ class ULA {
 
         ULA();
 
-        
+        bool linhaVazia(const string& linha);
         void executar(string nomearquivo);
         int processar(bool F0, bool F1, bool ENA, bool ENB, bool INVA, bool INC);
         void seta(string a);
