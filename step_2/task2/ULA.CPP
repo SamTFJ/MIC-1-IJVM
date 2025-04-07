@@ -11,50 +11,6 @@
 using namespace std;
 
 
-void Registradores::lerRegistradores(const std::string &nomeArquivo) {
-    std::ifstream arquivo(nomeArquivo);
-    if (!arquivo.is_open()) {
-        std::cerr << "Erro ao abrir o arquivo de registradores: " << nomeArquivo << std::endl;
-        return;
-    }
-    
-    string linhaa;
-    while (getline(arquivo, linhaa)) {
-        if (linhaa.empty())
-            continue;
-        
-        // Espera-se uma linha no formato: nome = valor
-        istringstream iss(linhaa); //permite tratar uma string como se fosse um stream (como cin).
-        string nome, igual, valor; // linha = "pc = 00000000000000000000000000001010", entao o iss se comporta como um stream do tipo "pc" "="" "00000000000000000000000000001010"
-        if (!(iss >> nome >> igual >> valor))
-            continue; // pula linha mal formatada
-        
-        if (nome == "mar") //atribui os valores para o registrador
-            strcpy(MAR, valor.c_str());
-        else if (nome == "mdr")
-            strcpy(MDR, valor.c_str());
-        else if (nome == "pc")
-            strcpy(PC, valor.c_str());
-        else if (nome == "mbr")
-            strcpy(MBR, valor.c_str());
-        else if (nome == "sp")
-            strcpy(SP, valor.c_str());
-        else if (nome == "lv")
-            strcpy(LV, valor.c_str());
-        else if (nome == "cpp")
-            strcpy(CPP, valor.c_str());
-        else if (nome == "tos")
-            strcpy(TOS, valor.c_str());
-        else if (nome == "opc")
-            strcpy(OPC, valor.c_str());
-        else if (nome == "h")
-            strcpy(H, valor.c_str());
-    }
-    
-    arquivo.close();
-}
-
-
 // Função auxiliar para obter o nome do registrador de B a partir dos 4 bits
 string getNomeRegistradorB(uint8_t code4) {
     // Conforme especificado, a convenção:
@@ -165,6 +121,51 @@ void Registradores::escritaC(uint16_t regc, char Sd[33]){
     if (regc & (1<<1)) strcpy(MDR, Sd);
     if (regc & (1<<0)) strcpy(MAR, Sd);
 }
+
+//função para ler os valores dos registradores 
+void Registradores::lerRegistradores(const string &nomeArquivo) {
+     ifstream arquivo(nomeArquivo);
+    if (!arquivo.is_open()) {
+        cerr << "Erro ao abrir o arquivo de registradores: " << nomeArquivo << endl;
+        return;
+    }
+    
+    string linhaa;
+    while (getline(arquivo, linhaa)) {
+        if (linhaa.empty())
+            continue;
+        
+        // Espera-se uma linha no formato: nome = valor
+        istringstream iss(linhaa); //permite tratar uma string como se fosse um stream (como cin).
+        string nome, igual, valor; // linha = "pc = 00000000000000000000000000001010", entao o iss se comporta como um stream do tipo "pc" "="" "00000000000000000000000000001010"
+        if (!(iss >> nome >> igual >> valor))
+            continue; // pula linha mal formatada
+        
+        if (nome == "mar") //atribui os valores para o registrador
+            strcpy(MAR, valor.c_str());
+        else if (nome == "mdr")
+            strcpy(MDR, valor.c_str());
+        else if (nome == "pc")
+            strcpy(PC, valor.c_str());
+        else if (nome == "mbr")
+            strcpy(MBR, valor.c_str());
+        else if (nome == "sp")
+            strcpy(SP, valor.c_str());
+        else if (nome == "lv")
+            strcpy(LV, valor.c_str());
+        else if (nome == "cpp")
+            strcpy(CPP, valor.c_str());
+        else if (nome == "tos")
+            strcpy(TOS, valor.c_str());
+        else if (nome == "opc")
+            strcpy(OPC, valor.c_str());
+        else if (nome == "h")
+            strcpy(H, valor.c_str());
+    }
+    
+    arquivo.close();
+}
+
 
 // Objeto global de registradores
 Registradores regs;
