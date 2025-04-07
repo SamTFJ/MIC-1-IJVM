@@ -8,8 +8,8 @@ using namespace std;
 
 //iniciando 
 ULA::ULA() {
-    strcpy(A, "00000000000000000000000000000001");
-    strcpy(B, "10000000000000000000000000000000");
+    strcpy(A, "00000000000000000000000000000000");
+    strcpy(B, "00000000000000000000000000000000");
     strcpy(S, "00000000000000000000000000000000");
     strcpy(Sd,"00000000000000000000000000000000");
     strcpy(IR, "00000000");
@@ -78,9 +78,9 @@ int ULA::processar(bool SLL8, bool SRA1,bool F0, bool F1, bool ENA, bool ENB, bo
 
     // Converte o resultado para string binária e armazena em S
     string binRes = bitset<32>(res32).to_string();
+
     strncpy(S, binRes.c_str(), 32);
     S[32] = '\0';
-
 
 
     if(SLL8 & !SRA1){
@@ -93,15 +93,26 @@ int ULA::processar(bool SLL8, bool SRA1,bool F0, bool F1, bool ENA, bool ENB, bo
         resultadosra1 = resultadosra1 >>1; // deslocamento aritmético para direita em 1 bit
 
         res32 = static_cast<unsigned int>(resultadosra1); //var res32 é convertida de volta para unsingned int
-    }else if(SLL8 & SRA1){
-        return;
     }
 
     string binresd = bitset<32>(res32).to_string();
     strncpy(Sd, binresd.c_str(),32);
     Sd[32] = '\0';
 
-   
+    if(res32 & 0x80000000u){
+        
+        N = 1;
+    } 
+    else{
+        N = 0;
+    }
+
+    if(res32 == 0){
+        Z = 1;
+    }
+    else{
+        Z = 0;
+    }
     
     return res32;
 }
@@ -134,11 +145,11 @@ void ULA::executar(string nomearquivo){
             break;
         }
 
-        // 1) Carrega IR (6 bits)
-        for (int i = 0; i < 6 && i < (int)linha.length(); ++i){
+        // 1) Carrega IR (8 bits)
+        for (int i = 0; i < 8 && i < (int)linha.length(); ++i){
             IR[i] = linha[i];
         }
-        IR[6] = '\0';
+        IR[8] = '\0';
 
         // 2) Decodifica os sinais de controle a partir da linha
         SLL8 = (linha[0] == '1');
@@ -152,9 +163,19 @@ void ULA::executar(string nomearquivo){
 
         // 3) Executa a operação da ULA
         int res = processar(SLL8, SRA1, F0, F1, ENA, ENB, INVA, INC);
-        
 
-        // 4) Grava no log
+
+        // 4)  verifica se SLL8 = SLLA = 1, quando isso ocorre, o sinal de controle é inválido
+        if(SLL8 & SRA1){
+            arqlog << "\nCiclo " << PC << "\n\n";
+            arqlog << "PC = " << PC << "\n";
+            arqlog << "IR = " << IR << "\n";
+            arqlog << ">Erro! Sinais de Controle inválidos."<< endl;  
+            arqlog << "============================================================\n";
+            return;
+        }
+
+        // 5) Grava no log
         arqlog << "\nCiclo " << PC << "\n\n";
         arqlog << "PC = " << PC << "\n";
         arqlog << "IR = " << IR << "\n";
@@ -162,8 +183,8 @@ void ULA::executar(string nomearquivo){
         arqlog << "a = " << A << "\n";
         arqlog << "s = " << S << "\n";
         arqlog << "sd =" << Sd << "\n";
-        arqlog << "n = " << carryout << "\n";
-        arqlog << "z = " << carryout << "\n";
+        arqlog << "n = " << N << "\n";
+        arqlog << "z = " << Z << "\n";
         arqlog << "co = " << carryout << "\n";
         arqlog << "============================================================\n";
 
