@@ -10,6 +10,8 @@
 - ### Como compilar:
 ```
 g++ main.cpp ULA.CPP -o projeto
+```
+```
 ./projeto
 ```
 
