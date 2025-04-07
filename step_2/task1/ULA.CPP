@@ -1,5 +1,6 @@
 #include "ULA.h"
 #include <iostream>
+#include <algorithm> // all_of
 #include <fstream>
 #include <string>
 #include <cstring> // usar strcpy, strncpy (manipular char)
@@ -17,6 +18,12 @@ ULA::ULA() {
     N = 0;
     Z = 0;
     carryout = 0;
+}
+
+bool ULA::linhaVazia(const string& linha) {
+    return all_of(linha.begin(), linha.end(), [](char c) {
+        return isspace(static_cast<unsigned char>(c));
+    });
 }
 
 // copia ate 32 caracteres de a.c_str() para A[]
@@ -139,9 +146,9 @@ void ULA::executar(string nomearquivo){
     while (getline(arquivo, linha)) {
 
         //se a linha tiver vazia, irá encerrar
-        if (linha.empty()){
+        if (linha.empty() || linhaVazia(linha)) {
             PC++;
-            arqlog << "\nPC = " << PC << "\n> Line is empty, EOP.\n";
+            arqlog << "\nPC = " << PC-1 << "\n> Line is empty, EOP.\n";
             break;
         }
 
