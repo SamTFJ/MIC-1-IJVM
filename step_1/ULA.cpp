@@ -23,6 +23,8 @@ bool ULA::linhaVazia(const string& linha) {
         return isspace(static_cast<unsigned char>(c));
     });
 }
+
+
 // copia ate 32 caracteres de a.c_str() para A[]
 void ULA::seta(string a){
     strncpy(A, a.c_str(), 32); //a.c_str() retorna um ponteiro de char, para o strncpy poder copiar
@@ -106,8 +108,8 @@ void ULA::executar(string nomearquivo){
 
     while (getline(arquivo, linha)) {
 
-        //se a linha tiver vazia, irá encerrar
-        if (linha.empty() || linhaVazia(linha)) {
+         //se a linha tiver vazia, irá encerrar
+         if (linha.empty() || linhaVazia(linha)) {
             PC++;
             arqlog << "\nPC = " << PC-1 << "\n> Line is empty, EOP.\n";
             break;

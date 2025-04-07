@@ -25,8 +25,9 @@ class Registradores{
     string decod4(uint8_t code4); 
 
     void escritaC(uint16_t regc, char Sd[33]);
-    
+
     void lerRegistradores(const string &nomeArquivo);
+    
 
 };
 

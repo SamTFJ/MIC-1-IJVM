@@ -10,6 +10,38 @@
 #include <vector>
 using namespace std;
 
+// Vetor global para armazenar a memória (cada posição representa um endereço de 32 bits)
+vector<string> memoria;
+
+//função para ler a memoria
+void lerMemoria(const string &nomeArquivo) {
+    ifstream arquivo(nomeArquivo);
+    if (!arquivo.is_open()) {
+        cerr << "Erro ao abrir o arquivo de memória: " << nomeArquivo << endl;
+        return;
+    }
+    
+    string linha;
+    while (getline(arquivo, linha)) {
+        if (linha.empty())
+            continue; // ignora linhas vazias
+        
+        // Armazena a linha lida (que deve conter uma palavra de 32 bits) no vetor
+        memoria.push_back(linha);
+    }
+    arquivo.close();
+}
+
+// Função para escrever o estado da memória no log
+void escreverMemoria(ofstream &log) {
+    log << "> Memoria depois da Instrução\n";
+    log << "*******************************\n";
+    for (const auto &linha : memoria) {
+         log << linha << "\n";
+    }
+    log << "*******************************\n";
+}
+
 
 // Função auxiliar para obter o nome do registrador de B a partir dos 4 bits
 string getNomeRegistradorB(uint8_t code4) {
@@ -122,9 +154,8 @@ void Registradores::escritaC(uint16_t regc, char Sd[33]){
     if (regc & (1<<0)) strcpy(MAR, Sd);
 }
 
-//função para ler os valores dos registradores 
 void Registradores::lerRegistradores(const string &nomeArquivo) {
-     ifstream arquivo(nomeArquivo);
+    ifstream arquivo(nomeArquivo);
     if (!arquivo.is_open()) {
         cerr << "Erro ao abrir o arquivo de registradores: " << nomeArquivo << endl;
         return;
@@ -257,6 +288,20 @@ void ULA::executar(string nomearquivo) {
         return;
     }
 
+    //chama a função pra ler o estado inicial da memoria
+    lerMemoria("dados_etapa3_tarefa1.txt");
+
+
+     // Imprime estado inicial da memória
+     arqlog << "============================================================\n";
+     arqlog << "Estado Inicial da Memoria\n";
+     arqlog << "*******************************\n";
+     for (const auto &linha : memoria) {
+         arqlog << linha << "\n";
+     }
+     arqlog << "*******************************\n";
+
+
     // Imprime cabeçalho com estado inicial dos registradores
     arqlog << "=====================================================\n";
     arqlog << "> Estado Inicial dos Registradores\n";
@@ -284,15 +329,16 @@ void ULA::executar(string nomearquivo) {
             arqlog << "PC = " << regs.PC << "\n> Line is empty, EOP.\n";
             break;
         }
-        if(linha.size() < 21){
+        if(linha.size() < 23){
             arqlog << "Instruções incompletas" << endl;
             continue;
         }
 
-        // Divide a instrução em 3 partes: 8 bits (ULA), 9 bits (C) e 4 bits (B)
+        // Divide a instrução em 4 partes: 8 bits (ULA), 9 bits (C), 2 bits (memoria) e 4 bits (B)
         string ULAcontrole = linha.substr(0,8);
         string c_bus = linha.substr(8,9);
-        string b_bus_bits = linha.substr(17,4);
+        string memoria_bits = linha.substr(17,2);
+        string b_bus_bits = linha.substr(19,4);
 
         // Atualiza o IR com os 8 bits de controle
         strncpy(IR, ULAcontrole.c_str(), 8);
@@ -340,6 +386,26 @@ void ULA::executar(string nomearquivo) {
         // Após a operação, escreve o resultado (Sd) nos registradores habilitados pelo c_bus
         uint16_t regc = stoi(c_bus, nullptr, 2);
         regs.escritaC(regc, Sd);
+
+        // Verifica a operação de memória
+        if(memoria_bits == "10") { // WRITE
+            int endereco = stoi(regs.MAR, nullptr, 2);
+            if(endereco >= 0 && endereco < (int)memoria.size()) {
+                memoria[endereco] = string(regs.MDR);
+            } else {
+                cerr << "Endereço inválido para WRITE: " << endereco << endl;
+            }
+        } else if(memoria_bits == "01") { // READ
+            int endereco = stoi(regs.MAR, nullptr, 2);
+            if(endereco >= 0 && endereco < (int)memoria.size()) {
+                strcpy(regs.MDR, memoria[endereco].c_str());
+            } else {
+                cerr << "Endereço inválido para READ: " << endereco << endl;
+            }
+        } else if(memoria_bits == "11") { // BIPUSH 
+            string valorH = string(24, '0') + string(regs.MBR);
+            strcpy(regs.H, valorH.c_str());
+        }
 
         // Salva estado dos registradores após a instrução
         string estadoDepois;
