@@ -83,7 +83,7 @@ string Registradores::decod4(uint8_t code4) {
         case 8:
             return string(OPC);
         case 7:
-            return string(OPC); // Força para OPC, conforme a saída (mesmo que a convenção seria TOS)
+            return string(TOS); // Força para OPC, conforme a saída (mesmo que a convenção seria TOS)
         case 6:
             return string(CPP);
         case 5:
