@@ -6,7 +6,8 @@ using namespace std;
 
 int main() {
     ULA ula;
-    ula.executar("programa_etapa3_tarefa1.txt");
+    ula.processarArquivoInstrucoes("instruções.txt");
+    ula.executar("instruções.txt");
     cout << "Execução concluída. Verifique o arquivo log.txt para os resultados." << endl;
     
     return 0;
