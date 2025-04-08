@@ -281,7 +281,7 @@ void ULA::executar(string nomearquivo) {
         // Se a linha estiver vazia, encerra
         if (linha.empty()){
             arqlog << "\nCiclo " << ciclo << "\n";
-            arqlog << "PC = " << regs.PC << "\n> Line is empty, EOP.\n";
+            arqlog << "\n> Line is empty, EOP.\n";
             break;
         }
         if(linha.size() < 21){
