@@ -131,9 +131,6 @@ void ULA::executar(string nomearquivo){
 
         // 3) Executa a operação da ULA
         int res = processar(F0, F1, ENA, ENB, INVA, INC);
-        
-
-
 
         // 4) Grava no log
         arqlog << "\nCiclo " << PC << "\n\n";
@@ -144,7 +141,6 @@ void ULA::executar(string nomearquivo){
         arqlog << "s = " << S << "\n";
         arqlog << "co = " << carryout << "\n";
         arqlog << "============================================================\n";
-
 
         PC++; //incrementa pc, indicando q vai para prox instrução
     }
