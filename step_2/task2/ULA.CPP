@@ -12,7 +12,7 @@ using namespace std;
 
 
 // Função auxiliar para obter o nome do registrador de B a partir dos 4 bits
-string getNomeRegistradorB(uint8_t code4) {
+string Registradores::getNomeRegistradorB(uint8_t code4) {
     // Conforme especificado, a convenção:
     // 8: opc, 7: tos, 6: cpp, 5: lv, 4: sp, 3: mbru, 2: mbr, 1: pc, 0: mdr.
     
@@ -33,7 +33,7 @@ string getNomeRegistradorB(uint8_t code4) {
 // Função auxiliar para decodificar o seletor do barramento C (9 bits)
 // A convenção para os bits é: Bit8: h, 7: opc, 6: tos, 5: cpp, 4: lv,
 // 3: sp, 2: pc, 1: mdr, 0: mar.
-string decodificaC(string c_bus) {
+string Registradores::decodificaC(string c_bus) {
     vector<string> regsC(9, "");
     // Ordem (posição: registrador)
     regsC[8] = "h";
@@ -83,7 +83,7 @@ string Registradores::decod4(uint8_t code4) {
         case 8:
             return string(OPC);
         case 7:
-            return string(TOS); // Força para OPC, conforme a saída (mesmo que a convenção seria TOS)
+            return string(TOS);
         case 6:
             return string(CPP);
         case 5:
@@ -281,7 +281,7 @@ void ULA::executar(string nomearquivo) {
         // Se a linha estiver vazia, encerra
         if (linha.empty()){
             arqlog << "\nCiclo " << ciclo << "\n";
-            arqlog << "PC = " << regs.PC << "\n> Line is empty, EOP.\n";
+            arqlog << "\n> Line is empty, EOP.\n";
             break;
         }
         if(linha.size() < 21){
@@ -317,8 +317,8 @@ void ULA::executar(string nomearquivo) {
         setb(valorB);
 
         // Captura os nomes para o log
-        string nomeB = getNomeRegistradorB(static_cast<uint8_t>(code4));
-        string listaC = decodificaC(c_bus);
+        string nomeB = regs.getNomeRegistradorB(static_cast<uint8_t>(code4));
+        string listaC = regs.decodificaC(c_bus);
 
         // Salva estado dos registradores antes da instrução
         string estadoAntes;

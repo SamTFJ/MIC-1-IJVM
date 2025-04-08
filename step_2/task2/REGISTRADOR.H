@@ -28,6 +28,10 @@ class Registradores{
     
     void lerRegistradores(const string &nomeArquivo);
 
+    string getNomeRegistradorB(uint8_t code4);
+
+    string decodificaC(string c_bus);
+
 };
 
 
