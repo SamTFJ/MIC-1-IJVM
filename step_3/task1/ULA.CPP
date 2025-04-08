@@ -13,6 +13,9 @@ using namespace std;
 // Vetor global para armazenar a memória (cada posição representa um endereço de 32 bits)
 vector<string> memoria;
 
+// Declaração global do vetor de microinstruções
+vector<string> instrucoes;
+
 //função para ler a memoria
 void lerMemoria(const string &nomeArquivo) {
     ifstream arquivo(nomeArquivo);
@@ -41,7 +44,6 @@ void escreverMemoria(ofstream &log) {
     }
     log << "*******************************\n";
 }
-
 
 // Função auxiliar para obter o nome do registrador de B a partir dos 4 bits
 string Registradores::getNomeRegistradorB(uint8_t code4) {
@@ -280,6 +282,7 @@ int ULA::processar(bool SLL8, bool SRA1, bool F0, bool F1, bool ENA, bool ENB, b
 }
 
 void ULA::executar(string nomearquivo) {
+
     ifstream arquivo(nomearquivo);
     ofstream arqlog("log.txt");
 
@@ -440,6 +443,68 @@ void ULA::executar(string nomearquivo) {
         arqlog << "Ciclo " << ciclo << "\n";
         arqlog << "No more lines, EOP.\n";
     }
+
     arqlog.close();
     arquivo.close();
 }
+
+void ULA::processarArquivoInstrucoes(const string &arquivo_instrucoes) {
+    // Primeiro, abre o arquivo para leitura
+    ifstream arquivo(arquivo_instrucoes);
+    if (!arquivo.is_open()) {
+        cerr << "Erro ao abrir o arquivo de instrucoes!" << endl;
+        return;
+    }
+    
+    string linha;
+    while (getline(arquivo, linha)) {
+        int x;
+        // Verifica se a instrução tem o formato "ILOAD <n>"
+        if (sscanf(linha.c_str(), "ILOAD %d", &x) == 1) {
+            // Microinstruções para ILOAD x
+            instrucoes.push_back("00110100100000000000101"); // Ex.: H = LV
+            for (int i = 0; i < x; ++i) {
+                instrucoes.push_back("00111001100000000000101"); // Ex.: H = H+1
+            }
+            instrucoes.push_back("00111000000000001010101"); // Ex.: MAR = H; rd
+            instrucoes.push_back("00110101000001001100100"); // Ex.: MAR = SP = SP+1; wr
+            instrucoes.push_back("00110100001000000000000"); // Ex.: TOS = MDR
+        }
+        // Verifica se a instrução é "DUP"
+        else if (linha == "DUP") {
+            instrucoes.push_back("00110101000001001000100"); // Ex.: MAR = SP = SP+1;
+            instrucoes.push_back("00110100000000010100111"); // Ex.: MDR = TOS; wr
+        }
+        // Verifica se a instrução contém "BIPUSH" (por exemplo: "BIPUSH 00110011")
+        else if (linha.find("BIPUSH") != string::npos) {
+            instrucoes.push_back("00110101000001001000100"); // Ex.: SP = MAR = SP + 1
+            
+            // Extrai o imediato (byte) presente na instrução.
+            // Considera que após "BIPUSH " vem 8 dígitos binários.
+            string byteValor = linha.substr(7, 8);
+            // Constrói a microinstrução de fetch: concatena o byte com os bits fixos necessários.
+            string fetch = byteValor + "000000000110000";
+            instrucoes.push_back(fetch); // Ex.: H = MBR = byte
+            instrucoes.push_back("00111000001000010100000"); // Ex.: MDR = TOS = H; wr
+        }
+        else {
+            cout << "Instrução desconhecida: " << linha << endl;
+        }
+    }
+    arquivo.close();
+    
+    // Agora, reabre o mesmo arquivo (ou outro, se preferir) para escrever o conteúdo do vetor global "instrucoes".
+    ofstream arquivo_saida(arquivo_instrucoes, ios::trunc);
+    if (!arquivo_saida.is_open()) {
+        cerr << "Erro ao reabrir o arquivo de instrucoes para escrita!" << endl;
+        return;
+    }
+    
+    // Percorre o vetor e reescreve cada microinstrução no arquivo
+    for (size_t i = 0; i < instrucoes.size(); i++) {
+        arquivo_saida << instrucoes[i] << endl;
+    }
+    
+    arquivo_saida.close();
+}
+
